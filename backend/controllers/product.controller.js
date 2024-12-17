@@ -14,7 +14,7 @@ export const getFeatureProduct = async(req,res)=>{
             return res.json(JSON.parse(featuredProducts))
         }
 
-        featuredProducts = Product.find({isFeutered:true}).lean();
+        featuredProducts = await Product.find({isFeatured:true}).lean();
         
         if(!featuredProducts){
             return res.status(404).json({message:"No featured product found"})

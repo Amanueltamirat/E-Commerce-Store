@@ -1,7 +1,8 @@
 import User from "../models/user.model.js";
-import bcrypt from "bcryptjs/dist/bcrypt.js";
+// import bcrypt from "bcryptjs/dist/bcrypt.js";
+import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { redis } from "../lib/redis.js";
+// import { redis } from "../lib/redis.js";
 
 const generateToken = (userId)=>{
     const accessToken = jwt.sign({userId},process.env.ACCESS_TOKEN,{
@@ -13,9 +14,9 @@ const generateToken = (userId)=>{
     return {accessToken,refreshToken}
 }
 
-const storeRefreshToken = async(userId,refreshToken)=>{
-    await redis.set(`refresh_token:${userId}`,refreshToken,'EX',10*24*60*60)
-}
+// const storeRefreshToken = async(userId,refreshToken)=>{
+//     await redis.set(`refresh_token:${userId}`,refreshToken,'EX',10*24*60*60)
+// }
 
 const setCookies = (res,accessToken,refreshToken)=>{
     res.cookie('access_token',accessToken,{
@@ -62,7 +63,7 @@ await newUser.save();
 //authenticate
 
 const {accessToken,refreshToken} = generateToken(newUser._id)
-await storeRefreshToken(newUser._id,refreshToken)
+// await storeRefreshToken(newUser._id,refreshToken)
 setCookies(res,accessToken,refreshToken)
 
 res.status(200).json({newUser:{
@@ -91,7 +92,7 @@ if(!isPasswordValid){
     return res.status(404).json({success:false,message:'Invalid password'})
 }
 const {accessToken,refreshToken} = generateToken(user._id)
-await storeRefreshToken(user._id,refreshToken);
+// await storeRefreshToken(user._id,refreshToken);
 setCookies(res,accessToken,refreshToken);
 
 res.json({
@@ -109,7 +110,7 @@ export const signOut = async(req,res)=>{
        const refreshToken = req.cookies.refresh_token;
        if(refreshToken){
         const decoded = jwt.verify(refreshToken,process.env.GENERATE_TOKEN);
-        await redis.del(`refresh_token:${decoded.userId}`)
+        // await redis.del(`refresh_token:${decoded.userId}`)
        } 
        res.clearCookie('access_token');
        res.clearCookie('refresh_token');
@@ -127,11 +128,12 @@ export const refreshToken = async(req,res)=>{
         return res.status(402).json({message:'Refresh token not found!'})
     };
 
-    const decoded = await jwt.verify(refreshToken,process.env.GENERATE_TOKEN);
-    const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
-    if(refreshToken !== storedToken){
-        return res.status(404).json({message:'Invalid refresh token!'})
-    };
+    const decoded =  jwt.verify(refreshToken,process.env.GENERATE_TOKEN);
+    // const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
+    // if(refreshToken !== storedToken){
+    //     return res.status(404).json({message:'Invalid refresh token!'})
+    // };
+
     const accessToken = jwt.sign({userId:decoded.userId},process.env.ACCESS_TOKEN,{
         expiresIn:"15m"
     });
